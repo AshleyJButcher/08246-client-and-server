@@ -81,7 +81,7 @@ public class Whois
         catch (Exception e)
         {
             string message = e.Message;
-            Console.WriteLine("Could not connect to server, Server Timed Out");
+            Console.WriteLine("ERROR: Connection Timed Out");
         }
     }
 }
