@@ -28,8 +28,7 @@ namespace WhereIsServer
         {
             try
             {
-                IPAddress ServerIp = IPAddress.Parse("127.0.0.1"); //Sets the IP Address
-                listener = new TcpListener(ServerIp, 43); //Starts the Listener
+                listener = new TcpListener(IPAddress.Any, 43); //Starts the Listener
                 listenthread = new Thread(new ThreadStart(ListenForClients)); //Creates a New Thread for Listening for Clients
                 listenthread.Start(); //Starts the Thread
             }
