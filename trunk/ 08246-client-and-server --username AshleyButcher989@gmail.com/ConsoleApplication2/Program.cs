@@ -115,7 +115,7 @@ namespace WhereIsServer
             }
             return false; //we couldnt update the location
         }
-        public  enum types { GET, SET, ADD, NONE };
+        public  enum types { GET, SET, NONE };
 
         public static void doRequest(NetworkStream incoming, string IpAddress)
         {
@@ -157,7 +157,7 @@ namespace WhereIsServer
                             Console.WriteLine("Client: request to change " + name + " to " + Tlocation);
                             outputdata = Encoding.ASCII.GetBytes("OK" + (char)13 + (char)10);
                             Console.WriteLine("Server: Replied with OK");
-                            WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + " " + Tlocation + "' OK");
+                            WriteToLog(IpAddress, type + " " + name + " " + Tlocation, 202, outputdata.Length);
                         }
                         else
                         {
@@ -165,9 +165,8 @@ namespace WhereIsServer
                             personlist.Add(temp);
                             outputdata = Encoding.ASCII.GetBytes("OK" + (char)13 + (char)10);
                             Console.WriteLine("Server: Replied with OK");
-                            WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + " " + Tlocation + "' PERSON ADDED");
+                            WriteToLog(IpAddress, type + " " + name + " " + Tlocation, 201, outputdata.Length);
                         }
-                    
 
                 }
                 else if (type == types.GET)
@@ -178,14 +177,14 @@ namespace WhereIsServer
                     Console.WriteLine("Server: replied in " + GetPersonLocation(name));
                     if (GetPersonLocation(name) != "none")
                     {
-                        WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + "' OK");
+                        WriteToLog(IpAddress, type + " " + name, 200, 1);
                         outputdata = Encoding.ASCII.GetBytes(name + " is in " + GetPersonLocation(name) + (char)13 + (char)10);
                     }
                     else
                     {
                         outputdata = Encoding.ASCII.GetBytes("ERROR: no entries found" + (char)13 + (char)10);
                         Console.WriteLine("Server: Replied with ERROR: no entries found");
-                        WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + "' ERROR : no entries found");
+                        WriteToLog(IpAddress, type + " " + name, 500, 1);
                     }
                 }
 
@@ -194,12 +193,13 @@ namespace WhereIsServer
                
         }
 
-        private static void WriteToLog(string input)
+        private static void WriteToLog(string ipaddress, string input, int responce, int size)
         {
             try
             {
+                string text = ipaddress + " - - [" + DateTime.Now + "] " + '"' + input + '"' + " " + responce + " " + size; 
                 StreamWriter logfile = new StreamWriter("Log.txt", true); //Write the file
-                logfile.WriteLine(input); //Write a line of the log
+                logfile.WriteLine(text); //Write a line of the log
                 logfile.Close(); //Close the File
             }
             catch (Exception e)
