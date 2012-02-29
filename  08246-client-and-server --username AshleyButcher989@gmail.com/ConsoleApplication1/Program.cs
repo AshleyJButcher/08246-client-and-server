@@ -13,62 +13,51 @@ public class Whois
 
     static void Main(string[] args)
     {
-        if (args.Length > 1) //Must Be At Least 2 Arguments
+        switch (args.Length)
         {
-            IPAddress = args[0]; //IP Address
-            string inputname = args[1]; //Name
-            if (args.Length == 4) //If there 4 arguments
-            {
-                if (args[3] == "ADD") //if you are adding a person
-                {
-                    string inputlocation = args[2]; //Location
-                    SendData(SendRequest2(inputname, inputlocation)); //using a slightly different version of sendrequest(arg,arg)
-                }
+            case 0:
+                Console.WriteLine("Please Enter Some Arguments");
+            break;
 
-            }
-            else if (args.Length == 3) //If You Are Updating Location
-            {
-                string inputlocation = args[2]; //Location
-                SendData(SendRequest(inputname, inputlocation)); //Call Set Location Method
-            }
-            else
-            {
-                SendData(SendRequest(inputname)); //Call Get Location Method
-            }
-        }
-        else
-        {
-            if (args.Length == 1) //If there is only one method
-            {
-                if (args[0].ToUpper() == "HELP") //Help Menu
+            case 1:
+                if (args[0] != "-h")
+                    SendData(SendRequest(args[0])); //Get Request Local IP
+                else
+                    Console.WriteLine("Please Enter an IP for the Server");
+            break;
+
+            case 2:
+                if (args[0] != "-h")
+                    SendData(SendRequest(args[0],args[1])); //Set Request Local IP
+                else
+                    Console.WriteLine("Please Enter an arguments for the Server");
+            break;
+
+            case 3:
+                if (args[0] == "-h")
                 {
-                    Console.WriteLine("#################################EXAMPLES#################################");
-                    Console.WriteLine("127.0.0.1 Name - this will return names location");
-                    Console.WriteLine("127.0.0.1 Name Location - this will set names location");
-                    Console.WriteLine("127.0.0.1 Name Location ADD - this will add Name & Location to the server");
-                    Console.WriteLine("NOTE: ADD must be capitalised");
+                    IPAddress = args[1]; //Set IP Address
+                    SendData(SendRequest(args[2])); //Get Request Non Local IP
                 }
                 else
+                    Console.WriteLine("Incorrect String");
+            break;
+
+            case 4:
+                if (args[0] == "-h")
                 {
-                    Console.WriteLine("Please Enter Some Arguments for the Server");
+                    IPAddress = args[1]; //Set IP Address
+                    SendData(SendRequest(args[2],args[3])); //Set Request Non Local IP
                 }
-            }
-            else
-            {
-                Console.WriteLine("Please Enter Some Arguments");
-            }
+                else
+                    Console.WriteLine("Incorrect String");
+            break;
         }
-        Console.ReadLine(); //Wont Terminate Instantly
     }
 
     private static string SendRequest(string Name, string Location)
     {
         return Name + " " + Location + ((char)13) + ((char)10); //Set Location Method
-    }
-
-    private static string SendRequest2(string Name, string Location)
-    {
-        return "ADD " + Name + " " + Location + ((char)13) + ((char)10); //Add Person Method
     }
 
     private static string SendRequest(string Name)
@@ -87,7 +76,7 @@ public class Whois
             sw.WriteLine(args); //Write Out Our Command
             sw.Flush(); //Make sure it writes
 
-            Console.WriteLine(sr.ReadLine()); //Wait for a responce
+            Console.WriteLine(sr.ReadToEnd()); //Wait for a responce
         }
         catch (Exception e)
         {
