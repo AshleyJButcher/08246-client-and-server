@@ -21,7 +21,6 @@ namespace WhereIsServer
         {
             ReadXMLFile();
             runServer();
-            Console.ReadLine();
         }
 
         public static void runServer()
@@ -35,7 +34,7 @@ namespace WhereIsServer
             catch (Exception e)
             {
                 string warning = e.Message;
-                Console.WriteLine("Error Starting Client Listener");
+                Console.WriteLine("ERROR: Starting Client Listener");
             }
         }
  
@@ -55,7 +54,7 @@ namespace WhereIsServer
             catch (Exception e)
             {
                 string warning = e.Message;
-                Console.WriteLine("Error Starting Server, Maybe Something is Using this Port");
+                Console.WriteLine("ERROR: Starting Server");
             }
         }
 
@@ -63,24 +62,29 @@ namespace WhereIsServer
 
         private static void SingleClientThread(object tcpclient)
         {
+            TcpClient client = (TcpClient)tcpclient; //Create a new client
+            NetworkStream socketStream = null;
             try
             {
-                TcpClient client = (TcpClient)tcpclient; //Create a new client
-                NetworkStream socketStream = client.GetStream(); //Get a Network Stream from the client
+    
+                socketStream = client.GetStream(); //Get a Network Stream from the client
                 socketStream.WriteTimeout = 1000; //Times Out after a Second
                 socketStream.ReadTimeout = 1000; //Times Out after a Second
                 doRequest(socketStream, clientIPAddress); //Process Information
-                socketStream.Close(); //Close Network Stream
-                client.Client.Close(); //Close Client
-                Monitor.Enter(writexml); //Locks file so multiple threads aren't writing to the same file
-                writexml.WriteXMLFile(); //Write Out the XML File
-                Monitor.Exit(writexml); //Releases the method for other threads to use
             }
             catch (Exception e)
             {
                 string message = e.Message;
                 Console.WriteLine(clientIPAddress + ": Client Timed Out"  ); //Write Out the Error
                 
+            }
+            finally
+            {
+                socketStream.Close(); //Close Network Stream
+                client.Close();//.Client.Close(); //Close Client
+                Monitor.Enter(writexml); //Locks file so multiple threads aren't writing to the same file
+                writexml.WriteXMLFile(); //Write Out the XML File
+                Monitor.Exit(writexml); //Releases the method for other threads to use
             }
         }
 
@@ -125,6 +129,7 @@ namespace WhereIsServer
 
                 types type = types.NONE;
                 string name = " ";
+                byte[] outputdata = new byte[1024];
 
                 if (Input.Length == 1) //If there is One Argument
                 {
@@ -133,22 +138,12 @@ namespace WhereIsServer
                 }
                 else if (Input.Length >= 2) //If there are more than 2 arguments
                 {
-                    if (Input[0].ToUpper() == "ADD") //if the first word is add
-                    {
-                        incomingtext = incomingtext.Substring(4);
-                        type = types.ADD;
-                    }
-                    else
-                    {
-                        type = types.SET;
-                    }
+                    type = types.SET;
                     name = incomingtext;
                 }
 
 
-                byte[] outputdata = new byte[1024];
-
-                if (type == types.SET || type == types.ADD)
+                if (type == types.SET)
                 {
                     string[] tempstrings = name.Split(new Char[]{' '},2);
                     string Tlocation = tempstrings[1];
@@ -156,51 +151,23 @@ namespace WhereIsServer
                     int endlocation = Tlocation.IndexOf((char)13);
                     Tlocation = Tlocation.Substring(0, endlocation);
 
-                    if (type == types.SET)
-                    {
-                        Console.WriteLine("Client: request to change " + name + " to " + Tlocation);
-    
+
                         if (SetPersonLocation(name, Tlocation) == true)
                         {
+                            Console.WriteLine("Client: request to change " + name + " to " + Tlocation);
                             outputdata = Encoding.ASCII.GetBytes("OK" + (char)13 + (char)10);
                             Console.WriteLine("Server: Replied with OK");
                             WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + " " + Tlocation + "' OK");
                         }
                         else
                         {
-                            outputdata = Encoding.ASCII.GetBytes("ERROR: no entries found" + (char)13 + (char)10);
-                            Console.WriteLine("Server: Replied with ERROR: no entries found");
-                            WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + " " + Tlocation + "' ERROR : no entries found");
-                        }
-                    }
-                    else if (type == types.ADD)
-                    {
-                        Console.WriteLine("Client: request to add " + name + " to the location of " + Tlocation);
-                        bool AddPerson = false;
-                        foreach (Person node in personlist)
-                        {
-                            if (node.GetName().ToUpper() == name.ToUpper())
-                            {
-                                AddPerson = true;
-                            }
-
-                        }
-                        if (AddPerson == false)
-                        {
                             Person temp = new Person(name, Tlocation);
                             personlist.Add(temp);
-                            outputdata = Encoding.ASCII.GetBytes("OK PERSON ADDED" + (char)13 + (char)10);
-                            Console.WriteLine("Server: Replied with OK PERSON ADDED");
-                            WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + " " + Tlocation + "' OK PERSON ADDED");
+                            outputdata = Encoding.ASCII.GetBytes("OK" + (char)13 + (char)10);
+                            Console.WriteLine("Server: Replied with OK");
+                            WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + " " + Tlocation + "' PERSON ADDED");
                         }
-                        else
-                        {
-                            outputdata = Encoding.ASCII.GetBytes("PERSON EXISTS" + (char)13 + (char)10);
-                            Console.WriteLine("Server: Replied with PERSON EXISTS");
-                            WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + " " + Tlocation + "' PERSON EXISTS");
-                        }
-
-                    }
+                    
 
                 }
                 else if (type == types.GET)
@@ -216,8 +183,9 @@ namespace WhereIsServer
                     }
                     else
                     {
-                        WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + "' UNKNOWN");
-                        outputdata = Encoding.ASCII.GetBytes("Person Could Not Be Found!");
+                        outputdata = Encoding.ASCII.GetBytes("ERROR: no entries found" + (char)13 + (char)10);
+                        Console.WriteLine("Server: Replied with ERROR: no entries found");
+                        WriteToLog(IpAddress + " - - " + DateTime.Today + " '" + type + " " + name + "' ERROR : no entries found");
                     }
                 }
 
