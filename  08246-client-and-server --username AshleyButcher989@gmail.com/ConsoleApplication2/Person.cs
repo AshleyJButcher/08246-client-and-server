@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace WhereIsServer
+﻿namespace WhereIsServer
 {
     class Person
     {
-        private string name;
-        private string location;
+        private string _name;
+        private string _location;
 
         public Person(string name, string location)
         {
@@ -18,22 +13,22 @@ namespace WhereIsServer
 
         public string GetName()
         {
-            return name;
+            return _name;
         }
 
         public void SetName(string inputstring)
         {
-            name = inputstring;
+            _name = inputstring;
         }
 
         public string GetLocation()
         {
-            return location;
+            return _location;
         }
 
         public void SetLocation(string inputstring)
         {
-            location = inputstring;
+            _location = inputstring;
         }
     }
 }
