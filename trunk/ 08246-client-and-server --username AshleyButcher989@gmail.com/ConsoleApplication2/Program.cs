@@ -63,17 +63,14 @@ namespace WhereIsServer
             NetworkStream socketStream = null;
             try
             {
-    
                 socketStream = client.GetStream(); //Get a Network Stream from the client
-                Thread.Sleep(3000);
-                //socketStream.WriteTimeout = 1000; //Times Out after a Second
-                //socketStream.ReadTimeout = 1000; //Times Out after a Second
+                socketStream.WriteTimeout = 1000; //Times Out after a Second
+                socketStream.ReadTimeout = 1000; //Times Out after a Second
                 DoRequest(socketStream, _clientIpAddress); //Process Information
             }
             catch (Exception)
             {
                 Console.WriteLine(_clientIpAddress + ": Client Timed Out"  ); //Write Out the Error
-                
             }
             finally
             {
