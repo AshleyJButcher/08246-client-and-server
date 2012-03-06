@@ -65,8 +65,9 @@ namespace WhereIsServer
             {
     
                 socketStream = client.GetStream(); //Get a Network Stream from the client
-                socketStream.WriteTimeout = 1000; //Times Out after a Second
-                socketStream.ReadTimeout = 1000; //Times Out after a Second
+                Thread.Sleep(3000);
+                //socketStream.WriteTimeout = 1000; //Times Out after a Second
+                //socketStream.ReadTimeout = 1000; //Times Out after a Second
                 DoRequest(socketStream, _clientIpAddress); //Process Information
             }
             catch (Exception)
@@ -147,22 +148,19 @@ namespace WhereIsServer
                     int endlocation = tlocation.IndexOf((char)13);
                     tlocation = tlocation.Substring(0, endlocation);
 
-
+                    Console.WriteLine("Client: request to change " + name + " to " + tlocation);
                         if (SetPersonLocation(name, tlocation))
                         {
-                            Console.WriteLine("Client: request to change " + name + " to " + tlocation);
-                            outputdata = Encoding.ASCII.GetBytes("OK" + (char)13 + (char)10);
-                            Console.WriteLine("Server: Replied with OK");
                             WriteToLog(ipAddress, type + " " + name + " " + tlocation, 202, outputdata.Length);
                         }
                         else
                         {
                             Person temp = new Person(name, tlocation);
                             Personlist.Add(temp);
-                            outputdata = Encoding.ASCII.GetBytes("OK" + (char)13 + (char)10);
-                            Console.WriteLine("Server: Replied with OK");
                             WriteToLog(ipAddress, type + " " + name + " " + tlocation, 201, outputdata.Length);
                         }
+                        outputdata = Encoding.ASCII.GetBytes("OK" + (char)13 + (char)10);
+                        Console.WriteLine("Server: Replied with OK");
 
                 }
                 else if (type == Types.Get)
@@ -170,9 +168,10 @@ namespace WhereIsServer
                     int endlocation = name.IndexOf((char)13);
                     name = name.Substring(0, endlocation);
                     Console.WriteLine("Client: request for " + name);
-                    Console.WriteLine("Server: replied in " + GetPersonLocation(name));
+                    
                     if (GetPersonLocation(name) != "none")
                     {
+                        Console.WriteLine("Server: replied in " + GetPersonLocation(name));
                         WriteToLog(ipAddress, type + " " + name, 200, 1);
                         outputdata = Encoding.ASCII.GetBytes(name + " is in " + GetPersonLocation(name) + (char)13 + (char)10);
                     }
@@ -189,11 +188,11 @@ namespace WhereIsServer
                
         }
 
-        private static void WriteToLog(string ipaddress, string input, int responce, int size)
+        private static void WriteToLog(string ipaddress, string input, int response, int size)
         {
             try
             {
-                string text = ipaddress + " - - [" + DateTime.Now + "] " + '"' + input + '"' + " " + responce + " " + size; 
+                string text = ipaddress + " - - " + DateTime.Now.ToString("[dd/MMM/yyyy:HH:mm:ss zz00]") + '"' + input + '"' + " " + response + " " + size; 
                 StreamWriter logfile = new StreamWriter("Log.txt", true); //Write the file
                 logfile.WriteLine(text); //Write a line of the log
                 logfile.Close(); //Close the File
