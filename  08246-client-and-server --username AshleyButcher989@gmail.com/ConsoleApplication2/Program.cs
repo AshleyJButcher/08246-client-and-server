@@ -55,7 +55,7 @@ namespace WhereIsServer
             }
         }
 
-        static string _clientIpAddress = "0.0.0.0"; //Default Value
+        static string _clientIpAddress = "127.0.0.1"; //Default Value
 
         private static void SingleClientThread(object tcpclient)
         {
